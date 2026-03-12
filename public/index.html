@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nick13's Garage | Repuestos Vintage</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="/css/estilo.css" />
+  </head>
+  <body>
+    <div class="fondo-textura"></div>
+
+    <header class="encabezado-hero">
+      <div class="container py-4 py-lg-5">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+          <div>
+            <p class="etiqueta-marca mb-1">Tienda de Repuestos Automotrices Vintage</p>
+            <h1 class="titulo-principal mb-0">Nick13's Garage</h1>
+          </div>
+          <button id="botonLogout" class="btn btn-vintage btn-sm" type="button">Cerrar sesion</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container pb-5">
+      <div id="contenedorMensajes" class="alert d-none mt-3" role="alert"></div>
+
+      <section id="seccionAuth" class="mt-4">
+        <div class="row g-4">
+          <div class="col-lg-6">
+            <div class="panel-vintage h-100">
+              <h2 class="subtitulo">Registro</h2>
+              <form id="formRegistro" class="mt-3" autocomplete="off">
+                <div class="mb-3">
+                  <label class="form-label" for="registroUsername">Username</label>
+                  <input id="registroUsername" name="username" class="form-control" maxlength="50" required />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" for="registroEmail">Email</label>
+                  <input id="registroEmail" name="email" type="email" class="form-control" maxlength="150" required />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" for="registroPassword">Password</label>
+                  <input id="registroPassword" name="password" type="password" class="form-control" minlength="6" required />
+                </div>
+                <button class="btn btn-vintage w-100" type="submit">Crear cuenta</button>
+              </form>
+            </div>
+          </div>
+
+          <div class="col-lg-6">
+            <div class="panel-vintage h-100">
+              <h2 class="subtitulo">Login</h2>
+              <form id="formLogin" class="mt-3" autocomplete="off">
+                <div class="mb-3">
+                  <label class="form-label" for="loginIdentificador">Username o Email</label>
+                  <input id="loginIdentificador" name="identificador" class="form-control" required />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" for="loginPassword">Password</label>
+                  <input id="loginPassword" name="password" type="password" class="form-control" required />
+                </div>
+                <button class="btn btn-vintage w-100" type="submit">Ingresar</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="seccionApp" class="d-none mt-4">
+        <div class="row g-4">
+          <div class="col-xl-8">
+            <div class="panel-vintage">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="subtitulo mb-0">Catalogo de Repuestos</h2>
+                <button id="botonRecargarProductos" class="btn btn-outline-secondary btn-sm" type="button">Recargar</button>
+              </div>
+              <div id="listaProductos" class="row g-3"></div>
+            </div>
+          </div>
+
+          <div class="col-xl-4">
+            <div class="panel-vintage mb-4">
+              <h2 class="subtitulo">Tu Carrito</h2>
+              <div class="table-responsive mt-3">
+                <table class="table table-sm align-middle">
+                  <thead>
+                    <tr>
+                      <th>Producto</th>
+                      <th>Cant.</th>
+                      <th class="text-end">Subtotal</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="tablaCarrito"></tbody>
+                </table>
+              </div>
+              <div class="d-flex justify-content-between fw-bold">
+                <span>Total:</span>
+                <span id="totalCarrito">$0</span>
+              </div>
+
+              <div class="d-grid mt-3">
+                <button id="botonIrPagar" class="btn btn-vintage" type="button">Ir a pagar</button>
+              </div>
+
+              <div id="panelPagoTarjeta" class="mt-3 d-none">
+                <h3 class="h6 mb-2">Simulacion de Pago con Tarjeta</h3>
+                <form id="formPagoTarjeta" class="d-flex flex-column gap-2" autocomplete="off">
+                  <input
+                    id="inputTitularTarjeta"
+                    name="cardHolder"
+                    class="form-control"
+                    placeholder="Titular de la tarjeta"
+                    maxlength="120"
+                    required
+                  />
+                  <input
+                    id="inputNumeroTarjeta"
+                    name="cardNumber"
+                    class="form-control"
+                    inputmode="numeric"
+                    placeholder="Numero de tarjeta"
+                    minlength="13"
+                    maxlength="19"
+                    required
+                  />
+                  <div class="row g-2">
+                    <div class="col-4">
+                      <input
+                        id="inputMesExpiracion"
+                        name="expiryMonth"
+                        type="number"
+                        min="1"
+                        max="12"
+                        class="form-control"
+                        placeholder="MM"
+                        required
+                      />
+                    </div>
+                    <div class="col-4">
+                      <input
+                        id="inputAnioExpiracion"
+                        name="expiryYear"
+                        type="number"
+                        min="2024"
+                        max="2099"
+                        class="form-control"
+                        placeholder="AAAA"
+                        required
+                      />
+                    </div>
+                    <div class="col-4">
+                      <input
+                        id="inputCvv"
+                        name="cvv"
+                        class="form-control"
+                        inputmode="numeric"
+                        minlength="3"
+                        maxlength="4"
+                        placeholder="CVV"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <button class="btn btn-success" type="submit">Pagar carrito</button>
+                </form>
+                <p class="texto-ayuda mt-2 mb-0" id="respuestaPagoTarjeta"></p>
+              </div>
+            </div>
+
+            <div class="panel-vintage">
+              <h2 id="tituloFormularioProducto" class="subtitulo">Nuevo Producto</h2>
+              <p class="texto-ayuda mb-2">Completa los datos y sube la imagen para crear o modificar un producto.</p>
+              <form id="formUpload" class="d-flex flex-column gap-3">
+                <input
+                  id="inputNombreProducto"
+                  name="name"
+                  class="form-control"
+                  placeholder="Nombre del producto"
+                  maxlength="120"
+                  required
+                />
+                <textarea
+                  id="inputDescripcionProducto"
+                  name="description"
+                  class="form-control"
+                  placeholder="Descripcion"
+                  rows="3"
+                  maxlength="1000"
+                  required
+                ></textarea>
+                <input
+                  id="inputPrecioProducto"
+                  name="price"
+                  type="number"
+                  step="0.01"
+                  min="1"
+                  class="form-control"
+                  placeholder="Precio"
+                  required
+                />
+                <input
+                  id="inputImagen"
+                  type="file"
+                  class="input-archivo-oculto"
+                  name="imagen"
+                  accept=".jpg,.jpeg,.png,.webp"
+                />
+                <div class="d-flex flex-column gap-2">
+                  <button id="botonElegirImagen" class="btn btn-outline-secondary" type="button">Elegir imagen del producto</button>
+                  <small id="nombreArchivoSeleccionado" class="texto-ayuda">Ninguna imagen seleccionada para el nuevo producto.</small>
+                </div>
+                <div class="d-flex gap-2">
+                  <button id="botonGuardarProducto" class="btn btn-vintage flex-grow-1" type="submit">Crear producto</button>
+                  <button id="botonCancelarEdicion" class="btn btn-outline-secondary d-none" type="button">Cancelar</button>
+                </div>
+              </form>
+              <p class="texto-ayuda mt-3 mb-0" id="respuestaUpload"></p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="/js/cliente.js" defer></script>
+  </body>
+</html>

@@ -20,7 +20,9 @@ Esta implementacion esta pensada para demostrar capacidades de:
 - Emision y verificacion de JWT para rutas protegidas
 - Catalogo de productos cargado desde PostgreSQL
 - Carrito por usuario autenticado (agregar, listar y eliminar)
+- Checkout del carrito con simulacion de pago por tarjeta de credito
 - Upload de imagenes con validacion de tipo y extension
+- Edicion y eliminacion de productos restringida a rol administrador
 - Headers de seguridad con Helmet
 - Compatibilidad controlada por CORS
 - Frontend responsive con Bootstrap + JavaScript vanilla (Fetch API)
@@ -53,10 +55,16 @@ El proyecto sigue MVC con capas separadas:
 - Inyeccion SQL mitigada con consultas parametrizadas
 - Password protegida con hash bcrypt
 - Autorizacion por Bearer Token JWT en rutas privadas
+- Control de permisos por rol (admin/user)
 - Validacion y sanitizacion de datos de entrada
 - Restriccion de extensiones y MIME type en uploads
 - Helmet con CSP y politicas de seguridad
 - Manejo consistente de errores sin exponer detalles sensibles
+
+## Credenciales de Administrador
+
+- Username: admin
+- Password: ADMIN
 
 ## Requisitos Previos
 
@@ -110,6 +118,9 @@ npm run dev
 | JWT_SECRET | Si | Clave privada para firma de JWT |
 | JWT_EXPIRES_IN | No | Tiempo de expiracion del token (default: 8h) |
 | MAX_UPLOAD_MB | No | Limite de upload en MB (default: 3) |
+| ADMIN_USERNAME | No | Usuario administrador semilla (default: admin) |
+| ADMIN_PASSWORD | No | Password administrador semilla (default: ADMIN) |
+| ADMIN_EMAIL | No | Email administrador semilla |
 
 ## Scripts Disponibles
 
@@ -130,12 +141,16 @@ npm run dev
 ### Productos (protegido)
 
 - GET `/api/products`
+- POST `/api/products`
+- PUT `/api/products/:productId` (solo administrador)
+- DELETE `/api/products/:productId` (solo administrador)
 
 ### Carrito (protegido)
 
 - POST `/api/cart`
 - GET `/api/cart`
 - DELETE `/api/cart/:productId`
+- POST `/api/cart/checkout`
 
 ### Upload (protegido)
 
@@ -162,9 +177,9 @@ Cada producto incluye imagen en `public/img/`.
 │   ├── css/
 │   │   └── estilo.css
 │   ├── img/
-│   │   ├── bujias.svg
-│   │   ├── carburador.svg
-│   │   └── faros.svg
+│   │   ├── bujias.png
+│   │   ├── carburador.png
+│   │   └── faros.png
 │   ├── js/
 │   │   └── cliente.js
 │   └── index.html
@@ -197,4 +212,3 @@ Aplicacion validada con pruebas funcionales completas sobre:
 - carga de UI y recursos estaticos
 
 Resultado de validacion: flujo operativo completo y estable.
-# Ejercicio_practico_05_mod_8--Desarrollo_Portafolio_M-dulo_8E-Commerce--API-RESTfulll-JWT-PostgreSQL
