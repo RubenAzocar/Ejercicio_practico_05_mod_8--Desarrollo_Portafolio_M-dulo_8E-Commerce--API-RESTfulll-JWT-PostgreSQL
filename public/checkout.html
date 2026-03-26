@@ -56,8 +56,16 @@
                   <tbody id="tablaCarrito">
                     <!-- Dinamico -->
                   </tbody>
-                  <tfoot>
-                    <tr class="fs-5 fw-bold border-top-2">
+                   <tfoot>
+                    <tr class="border-top">
+                        <td colspan="5" class="text-end text-muted">Subtotal productos:</td>
+                        <td class="text-end" id="subtotalProductos">$0</td>
+                    </tr>
+                    <tr>
+                        <td colspan="5" class="text-end text-muted">Costo de envío:</td>
+                        <td class="text-end" id="costoEnvioDisplay">$0</td>
+                    </tr>
+                    <tr class="fs-5 fw-bold">
                         <td colspan="5" class="text-end">Total a pagar:</td>
                         <td class="text-end text-primary" id="totalCarrito">$0</td>
                     </tr>
@@ -66,10 +74,89 @@
               </div>
             </div>
 
+            <!-- Panel Datos de Envio -->
+            <div class="panel-vintage mb-4" id="panelEnvio">
+              <h2 class="subtitulo">Datos de Envio</h2>
+
+              <!-- Selector tipo de despacho -->
+              <div class="d-flex gap-3 mb-4 flex-wrap">
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" name="tipoDespacho" id="opcionDomicilio" value="domicilio" checked />
+                  <label class="form-check-label fw-semibold" for="opcionDomicilio">🚚 Envío a Domicilio</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" name="tipoDespacho" id="opcionRetiro" value="retiro" />
+                  <label class="form-check-label fw-semibold" for="opcionRetiro">🏪 Retiro en Tienda</label>
+                </div>
+              </div>
+
+              <!-- Badge retiro en tienda -->
+              <div id="avisoRetiro" class="alert alert-success py-2 d-none" style="font-size:0.9rem;">
+                ✅ <strong>Retiro sin costo.</strong> Puedes retirar tu pedido en nuestra tienda: <em>Av. Gran Avenida 1234, La Cisterna, Región Metropolitana.</em> Horario: Lun–Sáb 10:00–19:00 hrs.
+              </div>
+
+              <!-- Formulario con datos de envio -->
+              <fieldset id="camposEnvio">
+                <div class="row g-3">
+                  <div class="col-md-8">
+                    <label class="form-label">Dirección de entrega</label>
+                    <input id="inputDireccion" name="direccion" class="form-control" type="text"
+                      placeholder="Ej: Av. Libertador Bernardo O'Higgins 1234, Dpto 5B" maxlength="200" />
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label">Quien Recibe</label>
+                    <input id="inputQuienRecibe" name="quienRecibe" class="form-control" type="text"
+                      placeholder="Nombre completo" maxlength="120" />
+                  </div>
+                  <div class="col-md-5">
+                    <label class="form-label">Región</label>
+                    <select id="selectRegion" name="region" class="form-select">
+                      <option value="">— Selecciona tu región —</option>
+                      <option value="Arica y Parinacota"     data-costo="9990">Arica y Parinacota</option>
+                      <option value="Tarapacá"               data-costo="9490">Tarapacá</option>
+                      <option value="Antofagasta"            data-costo="8990">Antofagasta</option>
+                      <option value="Atacama"                data-costo="7990">Atacama</option>
+                      <option value="Coquimbo"               data-costo="6990">Coquimbo</option>
+                      <option value="Valparaíso"             data-costo="4990">Valparaíso</option>
+                      <option value="Región Metropolitana"   data-costo="2990">Región Metropolitana</option>
+                      <option value="O'Higgins"              data-costo="4490">O'Higgins</option>
+                      <option value="Maule"                  data-costo="5490">Maule</option>
+                      <option value="Ñuble"                  data-costo="5990">Ñuble</option>
+                      <option value="Biobío"                 data-costo="6490">Biobío</option>
+                      <option value="La Araucanía"           data-costo="6990">La Araucanía</option>
+                      <option value="Los Ríos"               data-costo="7490">Los Ríos</option>
+                      <option value="Los Lagos"              data-costo="8490">Los Lagos</option>
+                      <option value="Aysén"                  data-costo="11990">Aysén</option>
+                      <option value="Magallanes"             data-costo="13990">Magallanes</option>
+                    </select>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label">Comuna</label>
+                    <input id="inputComuna" name="comuna" class="form-control" type="text"
+                      placeholder="Ej: Santiago Centro" maxlength="80" />
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label">Costo de Envío</label>
+                    <input id="inputCostoEnvio" class="form-control fw-bold" type="text" readonly
+                      placeholder="Selecciona región" style="background:#f8f9fa; color:#198754; font-weight:700;" />
+                  </div>
+                </div>
+              </fieldset>
+            </div>
+
             <div class="panel-vintage" id="panelPagoCompleto">
                 <h2 class="subtitulo">Metodo de Pago</h2>
-                <p class="texto-ayuda mb-4">Ingresa los datos de tu tarjeta para completar la simulacion de compra.</p>
-                
+                <p class="texto-ayuda mb-3">Ingresa los datos de tu tarjeta para completar la simulacion de compra.</p>
+
+                <!-- Guia de datos de prueba -->
+                <div class="alert alert-info py-2 px-3 mb-4" style="border-left: 4px solid #0d6efd; font-size:0.85rem;">
+                  <strong>🧪 Datos de prueba disponibles:</strong><br>
+                  <span class="me-3">✅ VISA aprobada: <code>4532015112830366</code></span>
+                  <span class="me-3">✅ MASTERCARD aprobada: <code>5425233430109903</code></span>
+                  <span>❌ Rechazada: <code>4000000000000002</code></span><br>
+                  <span class="text-muted">Vencimiento: cualquier mes/año futuro · CVV: cualquier 3 dígitos (ej: 123)</span>
+                </div>
+
                 <form id="formPagoTarjeta" class="row g-3" autocomplete="off">
                   <div class="col-md-7">
                       <label class="form-label">Nombre del Titular</label>
@@ -77,7 +164,7 @@
                         id="inputTitularTarjeta"
                         name="cardHolder"
                         class="form-control"
-                        placeholder="EJ: JUAN PEREZ"
+                        placeholder="EJ: JUAN PEREZ (min. 5 caracteres)"
                         maxlength="120"
                         required
                       />
@@ -89,7 +176,7 @@
                         name="cardNumber"
                         class="form-control"
                         inputmode="numeric"
-                        placeholder="4500 0000 0000 0001"
+                        placeholder="4532015112830366 (VISA prueba)"
                         minlength="13"
                         maxlength="19"
                         required
@@ -114,10 +201,10 @@
                       id="inputAnioExpiracion"
                       name="expiryYear"
                       type="number"
-                      min="2024"
+                      min="2025"
                       max="2099"
                       class="form-control"
-                      placeholder="AAAA (2025)"
+                      placeholder="ej: 2027"
                       required
                     />
                   </div>
@@ -130,7 +217,7 @@
                       inputmode="numeric"
                       minlength="3"
                       maxlength="4"
-                      placeholder="123"
+                      placeholder="ej: 123"
                       required
                     />
                   </div>

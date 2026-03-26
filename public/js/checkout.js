@@ -1,20 +1,31 @@
 /**
  * checkout.js — Script exclusivo para la pagina de pago (checkout.html)
- * Maneja: autenticacion, carga del carrito, renderizado y simulacion de pago.
+ * Maneja: autenticacion, carga del carrito, datos de envio, simulacion de pago.
  */
 
 const estado = {
     token: localStorage.getItem('token') || '',
-    rol: 'user',
     carrito: [],
+    subtotalProductos: 0,
+    costoEnvio: 0,
 };
 
 // ─── Elementos del DOM ───────────────────────────────────────────────────────
-const tablaCarrito      = document.getElementById('tablaCarrito');
-const totalCarrito      = document.getElementById('totalCarrito');
-const contenedorMensajes = document.getElementById('contenedorMensajes');
-const formPagoTarjeta   = document.getElementById('formPagoTarjeta');
-const respuestaPago     = document.getElementById('respuestaPagoTarjeta');
+const tablaCarrito        = document.getElementById('tablaCarrito');
+const totalCarrito        = document.getElementById('totalCarrito');
+const subtotalProductosEl = document.getElementById('subtotalProductos');
+const costoEnvioDisplay   = document.getElementById('costoEnvioDisplay');
+const contenedorMensajes  = document.getElementById('contenedorMensajes');
+const formPagoTarjeta     = document.getElementById('formPagoTarjeta');
+const respuestaPago       = document.getElementById('respuestaPagoTarjeta');
+
+// Envío
+const opcionDomicilio = document.getElementById('opcionDomicilio');
+const opcionRetiro    = document.getElementById('opcionRetiro');
+const avisoRetiro     = document.getElementById('avisoRetiro');
+const camposEnvio     = document.getElementById('camposEnvio');
+const selectRegion    = document.getElementById('selectRegion');
+const inputCostoEnvio = document.getElementById('inputCostoEnvio');
 
 // ─── Utilidades ──────────────────────────────────────────────────────────────
 function formatearPrecio(valor) {
@@ -38,6 +49,68 @@ function ocultarMensaje() {
 function obtenerTexto(formData, campo) {
     const v = formData.get(campo);
     return typeof v === 'string' ? v : '';
+}
+
+// ─── Totales ─────────────────────────────────────────────────────────────────
+function actualizarTotales() {
+    if (subtotalProductosEl) subtotalProductosEl.textContent = formatearPrecio(estado.subtotalProductos);
+    if (costoEnvioDisplay)   costoEnvioDisplay.textContent   = formatearPrecio(estado.costoEnvio);
+    if (totalCarrito)        totalCarrito.textContent         = formatearPrecio(estado.subtotalProductos + estado.costoEnvio);
+}
+
+// ─── Logica de Envio ──────────────────────────────────────────────────────────
+function aplicarModoDespacho(modo) {
+    const esDomicilio = modo === 'domicilio';
+
+    // Mostrar/ocultar aviso de retiro
+    if (avisoRetiro) avisoRetiro.classList.toggle('d-none', esDomicilio);
+
+    // Habilitar/deshabilitar campos de envio
+    if (camposEnvio) {
+        const inputs = camposEnvio.querySelectorAll('input, select');
+        inputs.forEach((el) => {
+            el.disabled = !esDomicilio;
+        });
+        camposEnvio.style.opacity = esDomicilio ? '1' : '0.45';
+    }
+
+    if (!esDomicilio) {
+        // Retiro en tienda: costo 0, limpiar campo visual
+        estado.costoEnvio = 0;
+        if (inputCostoEnvio) inputCostoEnvio.value = 'Sin costo (Retiro en tienda)';
+        if (selectRegion)    selectRegion.value = '';
+        actualizarTotales();
+    } else {
+        // Al volver a domicilio, recalcular desde region seleccionada
+        estado.costoEnvio = 0;
+        if (inputCostoEnvio) inputCostoEnvio.value = '';
+        actualizarTotales();
+    }
+}
+
+function calcularCostoEnvio() {
+    if (!selectRegion) return;
+    const opcionSeleccionada = selectRegion.options[selectRegion.selectedIndex];
+    const costo = Number(opcionSeleccionada?.dataset?.costo || 0);
+    estado.costoEnvio = costo;
+
+    if (inputCostoEnvio) {
+        inputCostoEnvio.value = costo > 0 ? formatearPrecio(costo) : '';
+    }
+    actualizarTotales();
+}
+
+// Listeners de tipo de despacho
+if (opcionDomicilio) {
+    opcionDomicilio.addEventListener('change', () => aplicarModoDespacho('domicilio'));
+}
+if (opcionRetiro) {
+    opcionRetiro.addEventListener('change', () => aplicarModoDespacho('retiro'));
+}
+
+// Listener de region para calcular costo de envio dinamicamente
+if (selectRegion) {
+    selectRegion.addEventListener('change', calcularCostoEnvio);
 }
 
 // ─── API ─────────────────────────────────────────────────────────────────────
@@ -70,17 +143,19 @@ function renderizarCarrito() {
         celda.textContent = 'Tu carrito está vacío.';
         fila.append(celda);
         tablaCarrito.append(fila);
-        totalCarrito.textContent = formatearPrecio(0);
+        estado.subtotalProductos = 0;
+        actualizarTotales();
         if (formPagoTarjeta) {
-            formPagoTarjeta.querySelector('button[type="submit"]').disabled = true;
+            const btnPagar = formPagoTarjeta.querySelector('button[type="submit"]');
+            if (btnPagar) btnPagar.disabled = true;
         }
         return;
     }
 
-    let total = 0;
+    let subtotal = 0;
 
     estado.carrito.forEach((item) => {
-        total += Number(item.subtotal);
+        subtotal += Number(item.subtotal);
 
         const fila = document.createElement('tr');
 
@@ -140,7 +215,8 @@ function renderizarCarrito() {
         tablaCarrito.append(fila);
     });
 
-    totalCarrito.textContent = formatearPrecio(total);
+    estado.subtotalProductos = subtotal;
+    actualizarTotales();
 }
 
 // ─── Carga del carrito ────────────────────────────────────────────────────────
@@ -153,6 +229,24 @@ async function cargarCarrito() {
 if (formPagoTarjeta) {
     formPagoTarjeta.addEventListener('submit', async (ev) => {
         ev.preventDefault();
+
+        // Validar envio a domicilio si esta seleccionado
+        if (opcionDomicilio?.checked) {
+            const dir = document.getElementById('inputDireccion')?.value?.trim();
+            const quien = document.getElementById('inputQuienRecibe')?.value?.trim();
+            const region = selectRegion?.value;
+            const comuna = document.getElementById('inputComuna')?.value?.trim();
+
+            if (!dir || !quien || !region || !comuna) {
+                mostrarMensaje('Debes completar todos los datos de envío a domicilio.', 'warning');
+                return;
+            }
+            if (estado.costoEnvio === 0 && region) {
+                mostrarMensaje('Selecciona una región para calcular el costo de envío.', 'warning');
+                return;
+            }
+        }
+
         const fd = new FormData(formPagoTarjeta);
         try {
             const payload = {
@@ -168,13 +262,14 @@ if (formPagoTarjeta) {
                 body: JSON.stringify(payload),
             });
 
+            const totalFinal = formatearPrecio(resultado.resumen.total + estado.costoEnvio);
             if (respuestaPago) {
                 respuestaPago.textContent =
-                    `✅ Transacción ${resultado.pago.transaccionId} aprobada por ${formatearPrecio(resultado.resumen.total)}.`;
+                    `✅ Transacción ${resultado.pago.transaccionId} aprobada por ${totalFinal}.`;
             }
             mostrarMensaje('¡Pago aprobado! Serás redirigido a la tienda...', 'success');
             formPagoTarjeta.reset();
-            await cargarCarrito(); // actualiza tabla (quedará vacía)
+            await cargarCarrito();
 
             setTimeout(() => { window.location.href = '/'; }, 3000);
 
@@ -195,6 +290,7 @@ async function iniciar() {
     }
     try {
         await cargarCarrito();
+        aplicarModoDespacho('domicilio'); // estado por defecto
         ocultarMensaje();
     } catch (err) {
         mostrarMensaje('Error al cargar el carrito: ' + err.message, 'danger');
