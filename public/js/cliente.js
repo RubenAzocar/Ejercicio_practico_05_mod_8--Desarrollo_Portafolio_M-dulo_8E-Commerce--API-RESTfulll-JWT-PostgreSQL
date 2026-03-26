@@ -138,17 +138,18 @@ function limpiarPanelPago() {
 }
 
 function actualizarEstadoPago() {
-    if (!botonIrPagar || !panelPagoTarjeta) {
+    if (!botonIrPagar) {
         return;
     }
 
     const hayItems = estado.carrito.length > 0;
     botonIrPagar.disabled = !hayItems;
 
-    if (!hayItems) {
-        panelPagoTarjeta.classList.add('d-none');
-        botonIrPagar.textContent = 'Ir a pagar';
-        limpiarPanelPago();
+    if (!hayItems && window.location.pathname.includes('checkout.html')) {
+        mostrarMensaje('El carrito esta vacio. Redirigiendo a la tienda...', 'info');
+        setTimeout(() => {
+            window.location.href = '/';
+        }, 2000);
     }
 }
 
@@ -369,10 +370,12 @@ function renderizarCarrito() {
     if (!tablaCarrito || !totalCarrito) return;
     tablaCarrito.innerHTML = '';
 
+    const esCheckout = window.location.pathname.includes('checkout.html');
+
     if (!estado.carrito.length) {
         const fila = document.createElement('tr');
         const celda = document.createElement('td');
-        celda.colSpan = 4;
+        celda.colSpan = esCheckout ? 7 : 4;
         celda.className = 'text-center py-3 text-muted';
         celda.textContent = 'Tu carrito se encuentra vacio.';
         fila.append(celda);
@@ -390,14 +393,50 @@ function renderizarCarrito() {
         const fila = document.createElement('tr');
         fila.className = 'fila-carrito';
 
-        const celdaProducto = document.createElement('td');
-        celdaProducto.textContent = item.name;
+        if (esCheckout) {
+            // Celda Imagen
+            const celdaImg = document.createElement('td');
+            const img = document.createElement('img');
+            img.src = item.image_url || '/img/carburador.png';
+            img.style.width = '60px';
+            img.style.borderRadius = '5px';
+            celdaImg.append(img);
+            fila.append(celdaImg);
 
-        const celdaCantidad = document.createElement('td');
-        celdaCantidad.textContent = String(item.quantity);
+            // Celda Producto (Nombre)
+            const celdaNombre = document.createElement('td');
+            celdaNombre.textContent = item.name;
+            fila.append(celdaNombre);
+
+            // Celda Descripcion
+            const celdaDesc = document.createElement('td');
+            celdaDesc.className = 'small text-muted w-50';
+            celdaDesc.textContent = item.description;
+            fila.append(celdaDesc);
+            
+            // Celda Cantidad
+            const celdaCant = document.createElement('td');
+            celdaCant.textContent = item.quantity;
+            fila.append(celdaCant);
+
+            // Celda Precio Unitario
+            const celdaPrecioUnit = document.createElement('td');
+            celdaPrecioUnit.className = 'text-end';
+            celdaPrecioUnit.textContent = formatearPrecio(item.price);
+            fila.append(celdaPrecioUnit);
+        } else {
+            // Layout resumido para el index
+            const celdaProducto = document.createElement('td');
+            celdaProducto.textContent = item.name;
+            fila.append(celdaProducto);
+
+            const celdaCantidad = document.createElement('td');
+            celdaCantidad.textContent = String(item.quantity);
+            fila.append(celdaCantidad);
+        }
 
         const celdaSubtotal = document.createElement('td');
-        celdaSubtotal.className = 'text-end';
+        celdaSubtotal.className = 'text-end fw-bold';
         celdaSubtotal.textContent = formatearPrecio(item.subtotal);
 
         const celdaAccion = document.createElement('td');
@@ -417,7 +456,7 @@ function renderizarCarrito() {
         });
 
         celdaAccion.append(botonEliminar);
-        fila.append(celdaProducto, celdaCantidad, celdaSubtotal, celdaAccion);
+        fila.append(celdaSubtotal, celdaAccion);
         tablaCarrito.append(fila);
     });
 
@@ -597,16 +636,23 @@ if (formPagoTarjeta) {
                 body: JSON.stringify(payloadPago),
             });
 
-            respuestaPagoTarjeta.textContent = `Transaccion ${respuestaPago.pago.transaccionId} aprobada por ${formatearPrecio(respuestaPago.resumen.total)}.`;
-            mostrarMensaje('Pago aprobado. Tu carrito fue vaciado.', 'success');
+            if (respuestaPagoTarjeta) {
+                respuestaPagoTarjeta.textContent = `Transaccion ${respuestaPago.pago.transaccionId} aprobada por ${formatearPrecio(respuestaPago.resumen.total)}.`;
+            }
+            
+            mostrarMensaje('¡Pago aprobado! Redirigiendo a la tienda...', 'success');
 
             await Promise.all([cargarCarrito(), cargarProductos()]);
 
-            panelPagoTarjeta.classList.add('d-none');
-            botonIrPagar.textContent = 'Ir a pagar';
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 3000);
+            
             limpiarPanelPago();
         } catch (error) {
-            respuestaPagoTarjeta.textContent = 'El pago no se pudo completar en la simulacion.';
+            if (respuestaPagoTarjeta) {
+                respuestaPagoTarjeta.textContent = 'El pago no se pudo completar.';
+            }
             mostrarMensaje(error.message, 'danger');
         }
     });
@@ -685,6 +731,17 @@ function iniciarAplicacion() {
     iniciarPanelPrivado().catch((error) => {
         mostrarMensaje(error.message, 'danger');
     });
+
+    // Redireccion al checkout
+    if (botonIrPagar) {
+        botonIrPagar.addEventListener('click', () => {
+            if (!estado.token) {
+                mostrarAvisoRegistro();
+                return;
+            }
+            window.location.href = '/checkout.html';
+        });
+    }
 
     // Delegacion de eventos para clics en paneles de invitado
     document.addEventListener('click', (evento) => {
