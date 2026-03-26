@@ -8,6 +8,9 @@ const estado = {
 
 const seccionAuth = document.getElementById('seccionAuth');
 const seccionApp = document.getElementById('seccionApp');
+const botonIrLogin = document.getElementById('botonIrLogin');
+const botonLogout = document.getElementById('botonLogout');
+const panelAdministrativo = document.getElementById('panelAdministrativo');
 const contenedorMensajes = document.getElementById('contenedorMensajes');
 const listaProductos = document.getElementById('listaProductos');
 const tablaCarrito = document.getElementById('tablaCarrito');
@@ -100,12 +103,27 @@ function limpiarSeleccionImagen() {
 
 function resetearFormularioProducto() {
     const formulario = document.getElementById('formUpload');
+    if (!formulario) return;
+    
     formulario.reset();
     estado.edicionProducto = null;
-    tituloFormularioProducto.textContent = 'Nuevo Producto';
-    botonGuardarProducto.textContent = 'Crear producto';
-    botonCancelarEdicion.classList.add('d-none');
-    respuestaUpload.textContent = '';
+    
+    if (tituloFormularioProducto) {
+        tituloFormularioProducto.textContent = 'Nuevo Producto';
+    }
+    
+    if (botonGuardarProducto) {
+        botonGuardarProducto.textContent = 'Crear producto';
+    }
+    
+    if (botonCancelarEdicion) {
+        botonCancelarEdicion.classList.add('d-none');
+    }
+    
+    if (respuestaUpload) {
+        respuestaUpload.textContent = '';
+    }
+    
     limpiarSeleccionImagen();
 }
 
@@ -184,9 +202,33 @@ async function llamarApi(url, opciones = {}) {
 
 function actualizarVistaSesion() {
     const logueado = Boolean(estado.token);
+    const admin = esAdministrador();
 
-    seccionAuth.classList.toggle('d-none', logueado);
-    seccionApp.classList.toggle('d-none', !logueado);
+    // En index.html
+    if (seccionApp) {
+        seccionApp.classList.remove('d-none');
+        seccionApp.classList.toggle('vista-invitado', !logueado);
+    }
+
+    if (botonIrLogin) {
+        botonIrLogin.classList.toggle('d-none', logueado);
+    }
+
+    if (botonLogout) {
+        botonLogout.classList.toggle('d-none', !logueado);
+    }
+
+    if (panelAdministrativo) {
+        panelAdministrativo.classList.toggle('d-none', !admin);
+    }
+
+    // En login.html (si existe la seccion)
+    if (seccionAuth) {
+        seccionAuth.classList.toggle('d-none', logueado);
+        if (logueado && window.location.pathname.includes('login.html')) {
+            window.location.href = '/';
+        }
+    }
 }
 
 function crearTarjetaProducto(producto) {
@@ -304,12 +346,13 @@ function crearTarjetaProducto(producto) {
 }
 
 function renderizarProductos() {
+    if (!listaProductos) return;
     listaProductos.innerHTML = '';
 
     if (!estado.productos.length) {
         const vacio = document.createElement('p');
-        vacio.className = 'mb-0';
-        vacio.textContent = 'No hay productos disponibles.';
+        vacio.className = 'mb-0 text-muted';
+        vacio.textContent = 'No hay productos disponibles actualmente.';
         listaProductos.append(vacio);
         return;
     }
@@ -323,13 +366,15 @@ function renderizarProductos() {
 }
 
 function renderizarCarrito() {
+    if (!tablaCarrito || !totalCarrito) return;
     tablaCarrito.innerHTML = '';
 
     if (!estado.carrito.length) {
         const fila = document.createElement('tr');
         const celda = document.createElement('td');
         celda.colSpan = 4;
-        celda.textContent = 'El carrito esta vacio.';
+        celda.className = 'text-center py-3 text-muted';
+        celda.textContent = 'Tu carrito se encuentra vacio.';
         fila.append(celda);
         tablaCarrito.append(fila);
         totalCarrito.textContent = formatearPrecio(0);
@@ -360,6 +405,7 @@ function renderizarCarrito() {
         botonEliminar.type = 'button';
         botonEliminar.className = 'btn btn-outline-danger btn-sm';
         botonEliminar.textContent = 'X';
+        botonEliminar.title = 'Eliminar del carrito';
         botonEliminar.addEventListener('click', async () => {
             try {
                 await llamarApi(`/api/cart/${item.product_id}`, { method: 'DELETE' });
@@ -393,74 +439,89 @@ async function iniciarPanelPrivado() {
     sincronizarRolDesdeToken();
     actualizarVistaSesion();
 
-    if (!estado.token) {
-        return;
-    }
-
     try {
-        await Promise.all([cargarProductos(), cargarCarrito()]);
+        await cargarProductos();
+        if (estado.token) {
+            await cargarCarrito();
+        }
         ocultarMensaje();
     } catch (error) {
-        localStorage.removeItem('token');
-        estado.token = '';
-        estado.rol = 'user';
-        actualizarVistaSesion();
-        mostrarMensaje(error.message, 'danger');
+        if (estado.token) {
+            localStorage.removeItem('token');
+            estado.token = '';
+            estado.rol = 'user';
+            actualizarVistaSesion();
+            mostrarMensaje(error.message, 'danger');
+        }
     }
 }
 
-document.getElementById('formRegistro').addEventListener('submit', async (evento) => {
-    evento.preventDefault();
-    const formulario = evento.currentTarget;
+const formRegistro = document.getElementById('formRegistro');
+if (formRegistro) {
+    formRegistro.addEventListener('submit', async (evento) => {
+        evento.preventDefault();
+        const formulario = evento.currentTarget;
 
-    const datosFormulario = new FormData(formulario);
-    const payload = {
-        username: obtenerCampoTexto(datosFormulario, 'username'),
-        email: obtenerCampoTexto(datosFormulario, 'email'),
-        password: obtenerCampoTexto(datosFormulario, 'password'),
-    };
+        const datosFormulario = new FormData(formulario);
+        const payload = {
+            username: obtenerCampoTexto(datosFormulario, 'username'),
+            email: obtenerCampoTexto(datosFormulario, 'email'),
+            password: obtenerCampoTexto(datosFormulario, 'password'),
+        };
 
-    try {
-        await llamarApi('/api/auth/register', {
-            method: 'POST',
-            body: JSON.stringify(payload),
-        });
-        mostrarMensaje('Registro exitoso. Ahora puedes iniciar sesion.', 'success');
-        formulario.reset();
-    } catch (error) {
-        mostrarMensaje(error.message, 'danger');
-    }
-});
-
-document.getElementById('formLogin').addEventListener('submit', async (evento) => {
-    evento.preventDefault();
-    const formulario = evento.currentTarget;
-
-    const datosFormulario = new FormData(formulario);
-    const payload = {
-        identificador: obtenerCampoTexto(datosFormulario, 'identificador'),
-        password: obtenerCampoTexto(datosFormulario, 'password'),
-    };
-
-    try {
-        const respuesta = await llamarApi('/api/auth/login', {
-            method: 'POST',
-            body: JSON.stringify(payload),
-        });
-
-        estado.token = respuesta.token;
-        estado.rol = respuesta.role === 'admin' ? 'admin' : 'user';
-        if (!respuesta.role) {
-            sincronizarRolDesdeToken();
+        try {
+            await llamarApi('/api/auth/register', {
+                method: 'POST',
+                body: JSON.stringify(payload),
+            });
+            mostrarMensaje('Registro exitoso. Ahora puedes iniciar sesion.', 'success');
+            formulario.reset();
+        } catch (error) {
+            mostrarMensaje(error.message, 'danger');
         }
-        localStorage.setItem('token', respuesta.token);
-        mostrarMensaje('Sesion iniciada correctamente.', 'success');
-        formulario.reset();
-        await iniciarPanelPrivado();
-    } catch (error) {
-        mostrarMensaje(error.message, 'danger');
-    }
-});
+    });
+}
+
+const formLogin = document.getElementById('formLogin');
+if (formLogin) {
+    formLogin.addEventListener('submit', async (evento) => {
+        evento.preventDefault();
+        const formulario = evento.currentTarget;
+
+        const datosFormulario = new FormData(formulario);
+        const payload = {
+            identificador: obtenerCampoTexto(datosFormulario, 'identificador'),
+            password: obtenerCampoTexto(datosFormulario, 'password'),
+        };
+
+        try {
+            const respuesta = await llamarApi('/api/auth/login', {
+                method: 'POST',
+                body: JSON.stringify(payload),
+            });
+
+            estado.token = respuesta.token;
+            estado.rol = respuesta.role === 'admin' ? 'admin' : 'user';
+            if (!respuesta.role) {
+                sincronizarRolDesdeToken();
+            }
+            localStorage.setItem('token', respuesta.token);
+            mostrarMensaje('Sesion iniciada correctamente. Redirigiendo...', 'success');
+            formulario.reset();
+            
+            // Redirigir si estamos en la pagina de login
+            if (window.location.pathname.includes('login.html')) {
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1000);
+            } else {
+                await iniciarPanelPrivado();
+            }
+        } catch (error) {
+            mostrarMensaje(error.message, 'danger');
+        }
+    });
+}
 
 document.getElementById('botonLogout').addEventListener('click', () => {
     estado.token = '';
@@ -624,6 +685,30 @@ function iniciarAplicacion() {
     iniciarPanelPrivado().catch((error) => {
         mostrarMensaje(error.message, 'danger');
     });
+
+    // Delegacion de eventos para clics en paneles de invitado
+    document.addEventListener('click', (evento) => {
+        const elementoBloqueado = evento.target.closest('.vista-invitado');
+        if (elementoBloqueado && !estado.token) {
+            mostrarAvisoRegistro();
+        }
+    });
 }
+
+function mostrarAvisoRegistro() {
+    contenedorMensajes.innerHTML = `
+        <div class="d-flex flex-column flex-md-row align-items-center justify-content-center gap-3">
+            <span>Para interactuar con la tienda debes registrarte o iniciar sesion.</span>
+            <button class="btn btn-warning btn-sm" onclick="irARegistro()">Ir a Registro / Login</button>
+        </div>
+    `;
+    contenedorMensajes.className = 'alert alert-info py-3 shadow-sm';
+    contenedorMensajes.classList.remove('d-none');
+    contenedorMensajes.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+window.irARegistro = function() {
+    window.location.href = '/login.html';
+};
 
 iniciarAplicacion();

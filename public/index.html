@@ -28,55 +28,16 @@
             <p class="etiqueta-marca mb-1">Tienda de Repuestos Automotrices Vintage</p>
             <h1 class="titulo-principal mb-0">Nick13's Garage</h1>
           </div>
-          <button id="botonLogout" class="btn btn-vintage btn-sm" type="button">Cerrar sesion</button>
+          <div class="d-flex gap-2">
+            <a id="botonIrLogin" href="/login.html" class="btn btn-outline-light btn-sm">Registro / Login</a>
+            <button id="botonLogout" class="btn btn-vintage btn-sm d-none" type="button">Cerrar sesion</button>
+          </div>
         </div>
       </div>
     </header>
 
     <main class="container pb-5">
       <div id="contenedorMensajes" class="alert d-none mt-3" role="alert"></div>
-
-      <section id="seccionAuth" class="mt-4">
-        <div class="row g-4">
-          <div class="col-lg-6">
-            <div class="panel-vintage h-100">
-              <h2 class="subtitulo">Registro</h2>
-              <form id="formRegistro" class="mt-3" autocomplete="off">
-                <div class="mb-3">
-                  <label class="form-label" for="registroUsername">Username</label>
-                  <input id="registroUsername" name="username" class="form-control" maxlength="50" required />
-                </div>
-                <div class="mb-3">
-                  <label class="form-label" for="registroEmail">Email</label>
-                  <input id="registroEmail" name="email" type="email" class="form-control" maxlength="150" required />
-                </div>
-                <div class="mb-3">
-                  <label class="form-label" for="registroPassword">Password</label>
-                  <input id="registroPassword" name="password" type="password" class="form-control" minlength="6" required />
-                </div>
-                <button class="btn btn-vintage w-100" type="submit">Crear cuenta</button>
-              </form>
-            </div>
-          </div>
-
-          <div class="col-lg-6">
-            <div class="panel-vintage h-100">
-              <h2 class="subtitulo">Login</h2>
-              <form id="formLogin" class="mt-3" autocomplete="off">
-                <div class="mb-3">
-                  <label class="form-label" for="loginIdentificador">Username o Email</label>
-                  <input id="loginIdentificador" name="identificador" class="form-control" required />
-                </div>
-                <div class="mb-3">
-                  <label class="form-label" for="loginPassword">Password</label>
-                  <input id="loginPassword" name="password" type="password" class="form-control" required />
-                </div>
-                <button class="btn btn-vintage w-100" type="submit">Ingresar</button>
-              </form>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <section id="seccionApp" class="d-none mt-4">
         <div class="row g-4">
@@ -180,7 +141,7 @@
               </div>
             </div>
 
-            <div class="panel-vintage">
+            <div class="panel-vintage" id="panelAdministrativo">
               <h2 id="tituloFormularioProducto" class="subtitulo">Nuevo Producto</h2>
               <p class="texto-ayuda mb-2">Completa los datos y sube la imagen para crear o modificar un producto.</p>
               <form id="formUpload" class="d-flex flex-column gap-3">

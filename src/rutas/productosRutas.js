@@ -11,8 +11,8 @@ const {
 
 const router = express.Router();
 
-router.get('/', autenticarJwt, obtenerProductos);
-router.post('/', autenticarJwt, validarProducto, crearNuevoProducto);
+router.get('/', obtenerProductos);
+router.post('/', autenticarJwt, autorizarAdministrador, validarProducto, crearNuevoProducto);
 router.put(
     '/:productId',
     autenticarJwt,
