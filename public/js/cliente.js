@@ -478,6 +478,24 @@ async function iniciarPanelPrivado() {
     sincronizarRolDesdeToken();
     actualizarVistaSesion();
 
+    const esCheckout = window.location.pathname.includes('checkout.html');
+
+    // En checkout.html: si no hay sesion, redirigir al login
+    if (esCheckout) {
+        if (!estado.token) {
+            window.location.href = '/login.html';
+            return;
+        }
+        try {
+            await cargarCarrito();
+            ocultarMensaje();
+        } catch (error) {
+            mostrarMensaje(error.message, 'danger');
+        }
+        return;
+    }
+
+    // En index.html y login.html
     try {
         await cargarProductos();
         if (estado.token) {
