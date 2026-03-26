@@ -699,16 +699,21 @@ function mostrarAvisoRegistro() {
     contenedorMensajes.innerHTML = `
         <div class="d-flex flex-column flex-md-row align-items-center justify-content-center gap-3">
             <span>Para interactuar con la tienda debes registrarte o iniciar sesion.</span>
-            <button class="btn btn-warning btn-sm" onclick="irARegistro()">Ir a Registro / Login</button>
+            <button class="btn btn-warning btn-sm" id="btnRedirigirLogin">Ir a Registro / Login</button>
         </div>
     `;
     contenedorMensajes.className = 'alert alert-info py-3 shadow-sm';
     contenedorMensajes.classList.remove('d-none');
     contenedorMensajes.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
 
-window.irARegistro = function() {
-    window.location.href = '/login.html';
-};
+    // Listener especifico para el boton recien creado
+    const botonRedirigir = document.getElementById('btnRedirigirLogin');
+    if (botonRedirigir) {
+        botonRedirigir.addEventListener('click', (ej) => {
+            ej.preventDefault();
+            window.location.href = '/login.html';
+        });
+    }
+}
 
 iniciarAplicacion();
