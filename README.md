@@ -29,15 +29,22 @@ Esta implementacion esta pensada para demostrar capacidades de:
 
 ## Stack Tecnologico
 
-- Node.js
-- Express
-- PostgreSQL (driver pg)
-- JWT (jsonwebtoken)
-- bcryptjs
-- express-fileupload
-- Helmet
-- CORS
-- HTML, CSS, Bootstrap, JavaScript
+- Frontend: HTML, CSS, Bootstrap, JavaScript
+- Backend: Node.js, Express, JWT (jsonwebtoken), bcryptjs, express-fileupload, Helmet, CORS
+- Base de Datos: PostgreSQL (driver pg)
+- DevOps: Git y GitHub
+
+## Credenciales y Certificaciones
+
+- Google Cybersecurity Professional Certificate
+- Finalizacion del programa Oracle Next Education (ONE) - Oracle + Alura Latam
+
+### Insignias Oracle ONE
+
+[![Badge Conversor](public/img/badges/Badge-Conversor.png)](public/img/badges/Badge-Conversor.png)
+[![Badge Literalura](public/img/badges/Badge-Literalura.png)](public/img/badges/Badge-Literalura.png)
+[![Badge Spring ForoHub](public/img/badges/Badge-Spring-ForoHub.png)](public/img/badges/Badge-Spring-ForoHub.png)
+[![Insignia Proyecto Amigo Secreto](public/img/badges/Insignia%20Proyecto%20Amigo%20Secreto.png)](public/img/badges/Insignia%20Proyecto%20Amigo%20Secreto.png)
 
 ## Arquitectura
 
